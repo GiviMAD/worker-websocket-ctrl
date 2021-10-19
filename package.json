@@ -1,0 +1,36 @@
+{
+  "name": "worker-websocket-ctrl",
+  "version": "0.0.1",
+  "description": "Share a websocket using a Worker/SharedWorker communicating through comlink",
+  "main": "index.js",
+  "files": [
+    "index.js",
+    "index.d.ts"
+  ],
+  "scripts": {
+    "build": "tsc -p .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GiviMAD/worker-websocket-ctrl.git"
+  },
+  "keywords": [
+    "worker",
+    "SharedWorker",
+    "shared",
+    "websocket"
+  ],
+  "author": "GiviMAD",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/GiviMAD/worker-websocket-ctrl/issues"
+  },
+  "homepage": "https://github.com/GiviMAD/worker-websocket-ctrl#readme",
+  "devDependencies": {
+    "typescript": "^4.4.4"
+  },
+  "dependencies": {
+    "comlink": "^4.3.1"
+  }
+}
