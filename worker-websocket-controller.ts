@@ -1,5 +1,5 @@
 import * as Comlink from 'comlink';
-interface WorkerWebSocketCtrl {
+interface WorkerWsLink {
     /**
      * Listen ws messages.
      */
@@ -11,19 +11,19 @@ interface WorkerWebSocketCtrl {
     /**
      * Listen websocket connection/reconnection.
      */
-    onConnect?: () => void;
+    onConnect: () => void;
     /**
     * Listen websocket connection/reconnection.
     */
-    onDisconnect?: () => void;
+    onDisconnect: () => void;
     /**
      * Called once when health check fails for this subscription meaning 
      * it has been removed and no events will be send to it.
      */
-    onClose?: () => void;
+    onClose: () => void;
 }
 let ws = null as WebSocket | null;
-let subscribers = new Set<WorkerWebSocketCtrl>();
+let subscribers = new Set<WorkerWsLink>();
 let _getProtocols: ((path: string) => Promise<string[] | null>) | null = null;
 const DEFAULT_KEEPALIVE_INTERVAL_SEG = 30;
 const DEFAULT_KEEPALIVE_TIMEOUT_SEG = 5;
@@ -59,7 +59,7 @@ export class WorkerWsController {
         if (ws != null) return;
         this.startWs();
     }
-    subscribe(onEvent: (ev: string) => void, ping: (pong: () => void) => void, onConnect?: () => void, onDisconnect?: () => void, onClose?: () => void) {
+    subscribe(onEvent: (ev: string) => void, ping: (pong: () => void) => void, onConnect: () => void, onDisconnect: () => void, onClose: () => void) {
         const s = { onEvent, ping, onConnect, onDisconnect, onClose };
         subscribers.add(s);
         const keepAliveRef = this.keepAlive(s);
@@ -90,10 +90,10 @@ export class WorkerWsController {
             };
             socket.onopen = () => {
                 this.stopReconnect();
-                subscribers.forEach(s => s.onConnect?.());
+                subscribers.forEach(s => s.onConnect());
             };
             socket.onclose = () => {
-                subscribers.forEach(s => s.onDisconnect?.());
+                subscribers.forEach(s => s.onDisconnect());
                 this.startReconnect();
             };
         } catch (error) {
@@ -118,12 +118,12 @@ export class WorkerWsController {
             this.reconnectRef = null;
         }
     }
-    private keepAlive(s: WorkerWebSocketCtrl) {
+    private keepAlive(s: WorkerWsLink) {
         const intervalRef = setInterval(() => {
             const timeoutRef = setTimeout(() => {
                 subscribers.delete(s);
                 clearInterval(intervalRef);
-                s.onClose?.();
+                s.onClose();
                 this.checkSubscriptions();
             }, this.keepAliveTimeout);
             s.ping(Comlink.proxy(() => {

@@ -5,16 +5,20 @@ export class WorkerWsSubscriptions<T extends string = string> {
     private createWorker: (resource: T) => Worker | SharedWorker | undefined;
     private getProtocolsProxy?: ((path: string) => Promise<string[] | null>) & Comlink.ProxyMarked;
     private autoUnsubscribeBinded?: ((this: WorkerWsSubscriptions<T>, ctx: unknown, unsubscribe: () => void) => void);
-    private pathByResource = new Map<string, string>();
-    private resourceByPath = new Map<string, string>();
-    constructor(options: { api: string | (() => string), createWorker: (resource: T) => Worker | SharedWorker | undefined, getProtocols?: (resource: string) => Promise<string[] | null>, autoUnsubscribe?: (this: WorkerWsSubscriptions<T>, ctx: unknown, unsubscribe: () => void) => void }) {
+    private pathByResource = new Map<T, string>();
+    private resourceByPath = new Map<string, T>();
+    constructor(options: { api: string | (() => string), createWorker: (resource: T) => Worker | SharedWorker | undefined, getProtocols?: (resource: T) => Promise<string[] | null>, autoUnsubscribe?: (this: WorkerWsSubscriptions<T>, ctx: unknown, unsubscribe: () => void) => void }) {
         this.api = options.api;
         this.createWorker = options.createWorker;
         if (options.getProtocols) {
             const getProtocols = options.getProtocols;
-            this.getProtocolsProxy = Comlink.proxy((path: string) => {
-                const resource = this.resourceByPath.get(path)
-                return getProtocols(resource ?? '');
+            this.getProtocolsProxy = Comlink.proxy(async (path: string) => {
+                const resource = this.resourceByPath.get(path);
+                if (!resource) {
+                    console.error(`Unable to get resource name for path ${path}`);
+                    return null;
+                }
+                return getProtocols(resource);
             });
         }
         if (options.autoUnsubscribe) {
@@ -60,12 +64,12 @@ export class WorkerWsSubscriptions<T extends string = string> {
             Comlink.proxy(pong => {
                 pong()
             }),
-            hooks.onConnect ? Comlink.proxy(() => {
+            Comlink.proxy(() => {
                 hooks.onConnect?.();
-            }) : undefined,
-            hooks.onDisconnect ? Comlink.proxy(() => {
+            }),
+            Comlink.proxy(() => {
                 hooks.onDisconnect?.();
-            }) : undefined,
+            }),
             Comlink.proxy(() => {
                 hooks.onConnect?.()
                 console.error('Connection closed from the worker');
