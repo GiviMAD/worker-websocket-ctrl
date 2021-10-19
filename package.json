@@ -1,11 +1,11 @@
 {
   "name": "worker-websocket-ctrl",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Share a websocket using a Worker/SharedWorker communicating through comlink",
   "main": "index.js",
   "files": [
-    "index.js",
-    "index.d.ts"
+    "*.js",
+    "*.d.ts"
   ],
   "scripts": {
     "build": "tsc -p .",
