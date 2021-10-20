@@ -74,6 +74,7 @@ export class WorkerWsController {
 
             }
         });
+        if (ws?.readyState === WebSocket.OPEN) onConnect();
         return unsubscribe;
     }
     sendMessage(data: string) {
